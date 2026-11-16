@@ -1,0 +1,51 @@
+# ---- Never commit game data or anything derived from it ----
+# extracted Xbox 360 / PS3 game files
+extracted/
+ps3/
+game/
+*.xex
+*.stfs
+*.xbla
+# raw game formats (originals and patched copies)
+*.stz
+*.zif
+*.zig
+*.bik
+*.xpac
+*.crack
+*.tur
+*.hack
+*.sbn
+*.PScache
+*.VScache
+# generated button / logo sets (contain EA textures)
+mods/
+# exported textures (EA artwork)
+textures/
+# recompiled game code and build output
+port/generated/
+port/out/
+out/
+build/
+*.exe
+*.dll
+*.pdb
+*.lib
+*.obj
+# local tool checkouts
+rexglue-sdk/
+XenonRecomp/
+# scratch / logs / local machine info
+work/
+_to_delete/
+docs/*.log
+docs/tools_check.txt
+docs/clang_check.txt
+docs/default_strings.txt
+docs/screenshots/
+*.tmp
+__pycache__/
+*.pyc
+.vs/
+.vscode/
+launcher_settings.json

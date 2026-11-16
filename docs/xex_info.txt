@@ -1,0 +1,45 @@
+magic b'XEX2' flags 00000001 pe_data_offset 0x3000 sec_info 0x90 opt headers 15
+  0002ff RESOURCE?                      0x1c84
+  0003ff BASEFILE_FORMAT                0x1c98
+  010100 ENTRY_POINT                    0x8214d2f0
+  010201 IMAGE_BASE_ADDRESS             0x82000000
+  0103ff IMPORT_LIBRARIES               0x28cc
+  018002 CHECKSUM_TIMESTAMP             0x1cbc
+  0183ff ORIGINAL_PE_NAME               0x1cc4
+  0200ff STATIC_LIBRARIES               0x1ce0
+  020104 TLS_INFO                       0x1e24
+  020200 DEFAULT_STACK_SIZE             0x40000
+  030000 SYSTEM_FLAGS                   0x204
+  040006 EXECUTION_INFO                 0x1e34
+  040310 GAME_RATINGS                   0x1e4c
+  040404 LAN_KEY                        0x1e8c
+  0405ff ?                              0x1e9c
+PE name: GameCode_Xbox360_f.exe
+entry 0x8214d2f0
+image base 0x82000000
+media 7879db15 title 58410a7b version 00000001 base 00000001
+encryption 1 (1=AES) compression 2 (1=basic 2=LZX)
+  LZX window 0x8000
+PE timestamp 2010-09-01 10:22:52
+  lib XAPILIB    2.0.11626.0
+  lib D3D9       2.0.11626.0
+  lib D3DX9      2.0.11626.0
+  lib XGRAPHC    2.0.11626.0
+  lib XBOXKRNL   2.0.11626.0
+  lib XNET       2.0.11626.0
+  lib LIBCPMT    2.0.11626.0
+  lib XONLINE    2.0.11626.0
+  lib XHV2       2.0.11626.0
+  lib XMP        2.0.11626.0
+  lib XAVATRV1   2.0.11626.0
+  lib XAVATAR    2.0.11626.0
+  lib XFFB       2.0.11626.0
+  lib XAPOBA     2.0.11626.0
+  lib XAUDIO2    2.0.11626.0
+  lib X3DAUD     2.0.11626.0
+  lib XMCORE     2.0.11626.0
+  lib LINK       10.0.10224.0
+  lib C2         16.0.10224.0
+  lib C1         16.0.10224.0
+import libs: ['xam.xex', 'xboxkrnl.exe']
+image size 0x11a0000
