@@ -26,20 +26,24 @@ game runs as a normal Windows program.
 | Button prompts: Xbox / PlayStation / keyboard | ✅ English UI; other languages to do |
 | Skip EA / Visceral logos (optional) | ✅ |
 | Xbox LIVE features (leaderboards, online) | ❌ not planned |
-| One-click setup and prebuilt release | 🚧 in progress |
+| Setup tool and release zip | ✅ (first release being tested) |
 
 ## Features
 - **Native Windows executable.** No emulator required.
 - **Launcher** (`Launcher.bat`): choose Xbox 360, PlayStation 3 or keyboard button prompts, optionally skip the publisher logo movie, then play.
 - **Keyboard controls:** Enter = Start, Space = A, Backspace = B, L = X, P = Y, 1/3 = LB/RB, Q/E = LT/RT, WASD = left stick, arrows = right stick.
-- **PlayStation prompts** for menus, pop-ups, subtitles and the hacking minigames. The minigame symbols already ship in the Xbox files; the menu and font symbols are taken from your own PS3 copy if you have one.
+- **PlayStation prompts** for menus, pop-ups, subtitles and the hacking minigames, drawn by DSI Recomp (the minigame ones already ship in the Xbox files). If you own the PS3 version, Setup can use its symbols instead.
+- **Setup.exe**: point it at your Xbox 360 package; it extracts and checks the game and builds the prompt sets.
 - **Killers' Heaven boot splash**, shown before the game's own intro.
 
 ## Getting started
-Prebuilt releases are coming. For now, build from source; see **[BUILD.md](BUILD.md)**. In short:
-1. Extract your Xbox 360 package (title ID `58410A7B`) with `tools/stfs_extract.py` into `extracted/`.
+**Release zip:** unzip, run `Setup.exe` and pick your Xbox 360 package (title ID `58410A7B`), then run
+`Launcher.bat`. See the README.txt inside the zip.
+
+**From source:** see **[BUILD.md](BUILD.md)**. In short:
+1. `python tools\setup.py --package <your package>` (extracts, checks and prepares the game files).
 2. Run `build_windows.ps1` (Visual Studio Build Tools + LLVM 20 or newer).
-3. Build the button / logo sets (one-off Python commands), then start `Launcher.bat`.
+3. Start `Launcher.bat`.
 
 ## Repository layout
 | Path | What |

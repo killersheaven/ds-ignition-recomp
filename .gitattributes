@@ -5,3 +5,5 @@
 *.sh   text eol=lf
 *.py   text eol=lf
 *.png  binary
+release_readme.txt text eol=crlf
+*.ttf  binary

@@ -27,7 +27,7 @@ XBOX_Q = {'X': 0, 'Y': 1, 'A': 2, 'B': 3}
 PS3_Q = {'Triangle': 0, 'Circle': 1, 'Square': 2, 'Cross': 3}
 PS3_FOR = {'X': 'Square', 'Y': 'Triangle', 'A': 'Cross', 'B': 'Circle'}
 KEY_FOR = {'X': 'L', 'Y': 'P', 'A': 'space', 'B': 'backspace'}
-FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+FONT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts', 'DejaVuSans-Bold.ttf')   # bundled: same output on every OS
 
 def unz(path):
     d = zlib.decompress(open(path, 'rb').read())

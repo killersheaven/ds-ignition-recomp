@@ -4,10 +4,11 @@ Face buttons (33x33 cells) become keycaps; shoulder/trigger pills (84x42) reuse 
 with the Xbox lettering painted out. Labels follow the ReXGlue keyboard defaults used in play.bat:
   A=Space  B=Backspace  X=L  Y=P  LB=1  RB=3  LT=Q  RT=E
 """
+import os
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont, ImageFilter
 
-FONT = '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'
+FONT = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'fonts', 'DejaVuSans-Bold.ttf')   # bundled: same output on every OS
 EDGE = (189, 218, 230, 255)     # light rim colour sampled from the Xbox icons
 TOP = (128, 158, 186, 255)      # fill gradient, top
 BOT = (70, 96, 122, 255)        # fill gradient, bottom

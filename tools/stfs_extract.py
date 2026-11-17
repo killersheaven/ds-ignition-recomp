@@ -3,12 +3,13 @@
 Resumable: skips files already present with the right size."""
 import sys, os, struct, time
 
-def main():
-    pkg, out = sys.argv[1], sys.argv[2]
-    list_only = '--list' in sys.argv
+def extract(pkg, out, list_only=False, log=print):
+    """Extract every file of STFS package `pkg` into `out`; returns the number of files."""
     f = open(pkg, 'rb')
     hdr = f.read(0x971A)
     magic = hdr[:4]
+    if magic not in (b'LIVE', b'PIRS', b'CON '):
+        raise ValueError(f'{pkg} is not an Xbox 360 package (STFS)')
     header_size = struct.unpack('>I', hdr[0x340:0x344])[0]
     vd = hdr[0x379:0x379+0x24]
     block_sep = vd[2]
@@ -17,7 +18,7 @@ def main():
     total_alloc = struct.unpack('>I', vd[0x1C:0x20])[0]
     sex = (~block_sep) & 1
     first_ht = (header_size + 0xFFF) & 0xFFFFF000
-    print(f"magic={magic} header_size={header_size:#x} block_sep={block_sep} sex={sex} first_ht={first_ht:#x} ft_block={ft_block} ft_count={ft_count} total_alloc={total_alloc}")
+    log(f"magic={magic} header_size={header_size:#x} block_sep={block_sep} sex={sex} first_ht={first_ht:#x} ft_block={ft_block} ft_count={ft_count} total_alloc={total_alloc}")
     step0 = 0xAB if sex == 0 else 0xAC
 
     def data_addr(b):
@@ -84,7 +85,7 @@ def main():
     for i, e in enumerate(entries):
         p = path(i)
         if list_only:
-            print(f"{'D' if e['dir'] else 'F'} {e['size']:>12} blk={e['start']:<8} n={e['blocks']:<7} c={int(e['consec'])} ts={e['ts']:#010x} {p}")
+            log(f"{'D' if e['dir'] else 'F'} {e['size']:>12} blk={e['start']:<8} n={e['blocks']:<7} c={int(e['consec'])} ts={e['ts']:#010x} {p}")
             continue
         op = os.path.join(out, p)
         if e['dir']:
@@ -101,6 +102,9 @@ def main():
                 left -= 0x1000
                 b = b + 1 if e['consec'] else next_block(b)
         os.replace(tmp, op)
-        print(f"ok {e['size']:>12} {p}  ({time.time()-t_start:.0f}s)", flush=True)
-    print("DONE")
-main()
+        log(f"ok {e['size']:>12} {p}  ({time.time()-t_start:.0f}s)")
+    log("DONE")
+    return sum(1 for e in entries if not e['dir'])
+
+if __name__ == '__main__':
+    extract(sys.argv[1], sys.argv[2], '--list' in sys.argv)

@@ -4,7 +4,9 @@ Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
 $root   = Split-Path -Parent (Split-Path -Parent $PSScriptRoot)
-$exeDir = Join-Path $root "port\out\build\win-amd64-release"
+# release zip: bin\dsignition.exe; source build: port\out\build\win-amd64-release\dsignition.exe
+$exeDir = Join-Path $root "bin"
+if (-not (Test-Path (Join-Path $exeDir "dsignition.exe"))) { $exeDir = Join-Path $root "port\out\build\win-amd64-release" }
 $exe    = Join-Path $exeDir "dsignition.exe"
 $dst    = Join-Path $root "extracted\Resource"
 # each button set = these files: path inside mods\<set>\  ->  path inside extracted\Resource\
@@ -144,6 +146,8 @@ $play.Add_Click({
             Copy-Item $src $movie -Force -ErrorAction Stop
         }
         if (-not (Test-Path $exe)) { throw "dsignition.exe not found. Run build_windows.ps1 first." }
+        if (-not (Test-Path "$root\extracted\default.xex")) { throw "Game files not found. Run Setup first." }
+        New-Item -ItemType Directory -Force "$root\docs" | Out-Null
         $gameArgs = @("--game_data_root=`"$root\extracted`"", "--gpu_plugin=xenos", "--mnk_mode=true",
                   "--log_file=`"$root\docs\run_windows.log`"")
         if ($full.Checked) { $gameArgs += "--license_mask=1" }

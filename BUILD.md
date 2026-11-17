@@ -7,15 +7,18 @@
 - **Visual Studio 2022 or 2026 Build Tools** with the *Desktop development with C++* workload (MSVC, Windows SDK, CMake, Ninja).
 - **LLVM / Clang 20 or newer.** Visual Studio 2022 bundles Clang 19, which is too old: `winget install LLVM.LLVM`
 - **Git**
-- **Python 3.10+** with `numpy`, `pillow` and `scipy` (for the extractor and the button/logo tools):
-  `pip install numpy pillow scipy`
+- **Python 3.10+** with `numpy` and `pillow` (for the setup and button/logo tools): `pip install numpy pillow`
 - A GPU with Direct3D 12 or Vulkan.
 
-## 1. Extract the game
+## 1. Set up the game files
 ```
-python tools\stfs_extract.py "<path to your 58410A7B package>" extracted
+python tools\setup.py --package "<path to your 58410A7B package>"
 ```
-The extractor is resumable; run it again until it reports DONE. You should end up with 333 files (about 1.7 GB) in `extracted\`.
+(Run `python tools\setup.py` without arguments for the setup window.) It extracts the package into
+`extracted\` (333 files, about 1.7 GB), checks every file against `docs\sha1_baseline.txt`, backs up the
+files the launcher swaps into `mods\original\`, and builds the button-prompt sets and the logo skip in
+`mods\`. Add `--ps3 <PS3 USRDIR\resource\sumotool>` to use the PS3 version's own PlayStation symbols
+instead of the ones DSI Recomp draws. Running it again is safe.
 
 ## 2. Build
 From any PowerShell window:
@@ -36,30 +39,18 @@ Known issue: Git on Windows checks out the SDK's libmspack symlinks as small tex
 with `lzxd.c:1:1: error: expected identifier`. Replace each placeholder with the file it points to,
 or clone with symlinks enabled (Windows Developer Mode + `git config --global core.symlinks true`).
 
-## 3. Button prompts and logo skip (optional)
-Back up the originals first:
+## 3. Release zip (optional)
 ```
-mkdir mods\original\HardwareCrack mods\original\SoftwareHack
-copy extracted\Resource\SumoTool\subtitles_proj_EN.stz mods\original\
-copy extracted\Resource\SumoTool\popups_EN.stz        mods\original\
-copy extracted\Resource\SumoTool\Frontend_EN.stz      mods\original\
-copy extracted\Resource\HardwareCrack\HardwareCrackSet.zi? mods\original\HardwareCrack\
-copy extracted\Resource\SoftwareHack\SoftwareHackSet.zi?   mods\original\SoftwareHack\
-copy extracted\Resource\Movies\EaHd.bik               mods\original\
+powershell -ExecutionPolicy Bypass -File .\make_release.ps1 -Version 0.1.0
 ```
-Then build the sets from the originals:
-```
-python tools\make_button_mods.py mods\original <PS3 USRDIR>\resource\sumotool mods
-python tools\minigame_buttons.py mods\original mods
-python tools\bink_trim.py mods\original\EaHd.bik mods\skip_logos\EaHd.bik 1
-```
-`make_button_mods.py` currently needs the PS3 version's `resource\sumotool` folder, for the PS3 menu
-and font symbols. A version with original artwork for players without a PS3 copy is planned.
-The minigame sets need only the Xbox files (their PS3 symbols ship inside them).
+Builds `Setup.exe` with PyInstaller (installed with pip if missing) and writes
+`release\DSI-Recomp-v0.1.0-win64.zip`: the game exe and DLLs in `bin\`, Setup.exe, the launcher,
+README, credits and licenses. No game data.
 
-Always build from the original files, never from files already modified by a set.
+The individual tools still work on their own (`tools\make_button_mods.py`, `tools\minigame_buttons.py`,
+`tools\bink_trim.py`, `tools\stfs_extract.py`); always build sets from the original files.
 
-## 4. Play
+## Play
 Run `Launcher.bat`: pick the button prompts, optionally skip the logos, then press Play.
 If you own the **full game** (not the trial), tick *I own the full game* once. It passes
 `--license_mask=1`, and the launcher remembers it in `launcher_settings.json`. It is off by default. `play.bat` starts

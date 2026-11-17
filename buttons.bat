@@ -1,7 +1,7 @@
 @echo off
 rem Switch Dead Space Ignition's on-screen button prompts.
 rem   buttons.bat xbox      - original Xbox 360 buttons
-rem   buttons.bat ps3       - PlayStation 3 buttons (from your PS3 copy)
+rem   buttons.bat ps3       - PlayStation buttons
 rem   buttons.bat keyboard  - keyboard keys (matches the keys set in play.bat)
 setlocal
 set "ROOT=%~dp0"

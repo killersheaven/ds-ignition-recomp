@@ -49,3 +49,6 @@ __pycache__/
 .vs/
 .vscode/
 launcher_settings.json
+# release build output
+release/
+setup_error.log

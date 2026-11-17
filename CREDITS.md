@@ -43,7 +43,7 @@ Electronic Arts Inc. It is not covered by this project's license.
 - **XenonRecomp / XenonAnalyse** (hedge-dev) - used during early research. Not included in releases.
 
 ## Third-party libraries in the release
-These ship inside the ReXGlue runtime (`rexruntime.dll`, `rexgpu-xenos.dll`). Their full license texts are in `licenses/`.
+These ship inside the ReXGlue runtime (`rexruntime.dll`, `rexgpu-xenos.dll`, `TracyClient.dll`). Their full license texts are in `licenses/`.
 
 | Library | License |
 |---|---|
@@ -67,14 +67,27 @@ These ship inside the ReXGlue runtime (`rexruntime.dll`, `rexgpu-xenos.dll`). Th
 | utfcpp | Boost Software License 1.0 |
 | CLI11 | BSD 3-Clause |
 | stb | Public domain / MIT |
+| Tracy profiler client (`TracyClient.dll`) | BSD 3-Clause |
+
+### Inside `Setup.exe`
+Setup is the Killers' Heaven Python tools frozen with PyInstaller. It contains:
+
+| Component | License |
+|---|---|
+| Python runtime | PSF License |
+| NumPy | BSD 3-Clause (bundled OpenBLAS etc.: see its license file) |
+| Pillow | MIT-CMU (bundled libjpeg, libpng, zlib, FreeType etc.: see its license file) |
+| PyInstaller bootloader | GPL 2.0 with the bootloader exception (allows any license for the frozen program) |
+| DejaVu Sans Bold font (used to draw the keyboard keys) | Bitstream Vera / DejaVu license |
+
+The release's `licenses/` folder holds these texts, copied from the exact versions used to build it.
 
 LGPL components: the source for FFmpeg, libmspack and the ReXGlue runtime that links
 them is available at the ReXGlue SDK repository (https://github.com/rexglue/rexglue-sdk),
 at the commit listed in `BUILD.md`. You can rebuild the runtime with modified versions
 of these libraries using `build_windows.ps1`.
 
-Not included in releases: the GNU binutils PowerPC disassembler (GPL) and Tracy are used
-only by development tools.
+Not included in releases: the GNU binutils PowerPC disassembler (GPL), used only by the code generator.
 
 ## Killers' Heaven tools (this repository)
 - STFS package extractor, XEX tools
