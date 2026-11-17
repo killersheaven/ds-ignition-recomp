@@ -62,7 +62,7 @@ These ship inside the ReXGlue runtime (`rexruntime.dll`, `rexgpu-xenos.dll`, `Tr
 | glslang | BSD 3-Clause |
 | SPIRV-Tools, SPIRV-Headers | Apache 2.0 / MIT |
 | Vulkan Loader, Vulkan Headers | Apache 2.0 |
-| DirectX Shader Compiler (dxc) | University of Illinois/NCSA |
+| DirectX Shader Compiler (dxc) API headers | University of Illinois/NCSA |
 | xxHash | BSD 2-Clause |
 | utfcpp | Boost Software License 1.0 |
 | CLI11 | BSD 3-Clause |

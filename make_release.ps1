@@ -63,6 +63,8 @@ Copy-Item (Join-Path $root "release_readme.txt") (Join-Path $stage "README.txt")
 # 3. zip
 $zip = Join-Path $out "$name.zip"
 if (Test-Path $zip) { Remove-Item $zip }
-Compress-Archive -Path $stage -DestinationPath $zip
+# .NET's zip writer uses "/" paths (Compress-Archive in Windows PowerShell 5 writes "\\", which other unzip tools mishandle)
+Add-Type -AssemblyName System.IO.Compression.FileSystem
+[System.IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip, [System.IO.Compression.CompressionLevel]::Optimal, $true)
 $mb = [math]::Round((Get-Item $zip).Length / 1MB, 1)
 Log "DONE: $zip ($mb MB)"
