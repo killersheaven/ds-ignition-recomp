@@ -31,10 +31,31 @@ game runs as a normal Windows program.
 ## Features
 - **Native Windows executable.** No emulator required.
 - **Launcher** (`Launcher.bat`): choose Xbox 360, PlayStation 3 or keyboard button prompts, optionally skip the publisher logo movie, then play.
-- **Keyboard controls:** Enter = Start, Space = A, Backspace = B, L = X, P = Y, 1/3 = LB/RB, Q/E = LT/RT, WASD = left stick, arrows = right stick.
+- **Keyboard controls**, or any XInput controller (see [Controls](#controls)).
 - **PlayStation prompts** for menus, pop-ups, subtitles and the hacking minigames, drawn by DSI Recomp (the minigame ones already ship in the Xbox files). If you own the PS3 version, Setup can use its symbols instead.
 - **Setup.exe**: point it at your Xbox 360 package; it extracts and checks the game and builds the prompt sets.
 - **Killers' Heaven boot splash**, shown before the game's own intro.
+
+## Controls
+Keyboard play is on by default (`--mnk_mode=true`). A controller works at the same time.
+
+| Keyboard | Xbox 360 | PlayStation |
+|---|---|---|
+| W A S D | Left stick | Left stick |
+| Arrow keys | Right stick | Right stick |
+| Space | A | Cross |
+| Backspace | B | Circle |
+| L | X | Square |
+| P | Y | Triangle |
+| 1 | LB | L1 |
+| 3 | RB | R1 |
+| Q | LT | L2 |
+| E | RT | R2 |
+| Enter | Start | Start |
+
+In menus, Space confirms, Backspace goes back and Enter starts or pauses. In Hardware Crack, the arrow keys (right stick) turn the view.
+
+With the **Keyboard** prompt set picked in the launcher, the on-screen prompts show these keys.
 
 ## Getting started
 **Release zip:** unzip, run `Setup.exe` and pick your Xbox 360 package (title ID `58410A7B`), then run
