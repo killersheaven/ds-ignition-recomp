@@ -14,9 +14,10 @@ if not defined SRC (
   exit /b 1
 )
 set "RES=%ROOT%extracted\Resource"
-for %%F in (subtitles_proj_EN.stz popups_EN.stz Frontend_EN.stz) do (
-  if not exist "%SRC%\%%F" ( echo Missing %SRC%\%%F & exit /b 1 )
-  copy /y "%SRC%\%%F" "%DST%\%%F" >nul || ( echo Could not copy %%F - is the game still running? & exit /b 1 )
+rem menu, subtitle and pop-up prompts: one copy per game language (English is required)
+if not exist "%SRC%\Frontend_EN.stz" ( echo Missing %SRC%\Frontend_EN.stz - run Setup first & exit /b 1 )
+for %%L in (EN FR GE IT SP) do for %%N in (subtitles_proj popups Frontend) do (
+  if exist "%SRC%\%%N_%%L.stz" copy /y "%SRC%\%%N_%%L.stz" "%DST%\%%N_%%L.stz" >nul || ( echo Could not copy %%N_%%L.stz - is the game still running? & exit /b 1 )
 )
 for %%F in (HardwareCrack\HardwareCrackSet.zif HardwareCrack\HardwareCrackSet.zig SoftwareHack\SoftwareHackSet.zif SoftwareHack\SoftwareHackSet.zig) do (
   if not exist "%SRC%\%%F" ( echo Missing %SRC%\%%F & exit /b 1 )

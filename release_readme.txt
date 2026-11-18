@@ -20,6 +20,7 @@ FIRST TIME
   3. Run Launcher.bat.
 
 LAUNCHER
+  - Language: English, Français, Deutsch, Italiano or Español (game text and the launcher).
   - Button prompts: Xbox 360, PlayStation 3 or Keyboard.
   - Skip EA and Visceral logos.
   - I own the full game (unlock trial): the XBLA package starts as the trial unless your

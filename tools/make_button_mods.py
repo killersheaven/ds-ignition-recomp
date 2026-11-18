@@ -1,8 +1,8 @@
 """Build PS3 and keyboard button-prompt variants of Dead Space Ignition's UI files.
 
 Usage: python3 make_button_mods.py <xbox SumoTool dir> <out dir> [<ps3 sumotool dir>]
-Writes <out>/ps3_buttons/ and <out>/keyboard_buttons/ with subtitles_proj_EN.stz, popups_EN.stz and
-Frontend_EN.stz. Without a PS3 folder the PlayStation symbols are drawn by ps3_glyphs.py; with one, the
+Writes <out>/ps3_buttons/ and <out>/keyboard_buttons/ with subtitles_proj_XX.stz, popups_XX.stz and
+Frontend_XX.stz for every game language XX in LANGS that is present in the input folder. Without a PS3 folder the PlayStation symbols are drawn by ps3_glyphs.py; with one, the
 PS3 version's own symbols are used instead.
 Glyph mapping (follows the actual controls, not glyph positions):
   A->Cross/Space  B->Circle/Backspace  X->Square/L  Y->Triangle/P  LB->L1/1  RB->R1/3  LT->L2/Q  RT->R2/E
@@ -20,6 +20,7 @@ import ps3_glyphs
 XBOX_ORDER = ['RB', 'LB', 'RT', 'LT', 'Y', 'X', 'B', 'A']
 PS3_ORDER = ['R1', 'L1', 'L2', 'R2', 'Square', 'Triangle', 'Circle', 'Cross']
 PS3_MAP = {'RB': 'R1', 'LB': 'L1', 'RT': 'R2', 'LT': 'L2', 'Y': 'Triangle', 'X': 'Square', 'B': 'Circle', 'A': 'Cross'}
+LANGS = ['EN', 'FR', 'GE', 'IT', 'SP']   # the game's text languages (file suffixes)
 KEYS = {'A': ('', 'space'), 'B': ('', 'backspace'), 'X': ('L', None), 'Y': ('P', None),
         'LB': '1', 'RB': '3', 'LT': 'Q', 'RT': 'E'}
 
@@ -62,6 +63,20 @@ def font_icons(img):
     b.sort(key=lambda r: (r[1] // 20, r[0]))
     return b[:8]
 
+def identify(img, boxes, refs):
+    """Name each icon in `boxes` of `img` by the closest reference crop ({name: RGBA image}).
+    The fonts of the other languages store the same icons in a different order, so position alone
+    is not enough. Returns {name: box}; every reference must match exactly one box."""
+    out = {}
+    for box in boxes:
+        c = crop(img, box, 0)
+        best = min(refs, key=lambda n: np.mean((np.asarray(c.resize(refs[n].size, Image.BILINEAR), np.float32)
+                                                - np.asarray(refs[n], np.float32)) ** 2))
+        if best in out:
+            raise RuntimeError(f'two icons look like {best}: {out[best]} and {box}')
+        out[best] = box
+    return out
+
 def ps3_texture(path, index):
     d = open(path, 'rb').read(); s = streams(d); cpu, gpu = s[0], s[-1]
     t = find_textures_ps3(cpu, len(gpu))[index]
@@ -103,12 +118,12 @@ def kb_icon_sized(name, box):
     lab, sym = ('', 'enter') if name == 'Start' else KEYS[name]
     return keycap(lab, size=min(w, h) - 2, symbol=sym, font_px=15 * (min(w, h) - 2) / 31)
 
-def frontend(xdir, pdir, out, variant):
+def frontend(xdir, pdir, out, variant, lang='EN'):
     import tempfile, shutil
-    src = os.path.join(xdir, 'Frontend_EN.stz')
-    dst = os.path.join(out, variant, 'Frontend_EN.stz')
+    src = os.path.join(xdir, f'Frontend_{lang}.stz')
+    dst = os.path.join(out, variant, f'Frontend_{lang}.stz')
     tmp = dst + '.tmp'; shutil.copyfile(src, tmp)
-    ps3 = pdir and os.path.join(pdir, 'frontend_en.stz')
+    ps3 = pdir and os.path.join(pdir, f'frontend_{lang.lower()}.stz')
     total = 0
     for idx, spec in FE_XBOX.items():
         img, ctx = load_texture(tmp, idx)
@@ -132,45 +147,54 @@ def frontend(xdir, pdir, out, variant):
             else:
                 icon = own_ps3(name, img, box, pad)
             paste_icon(img, box, icon, pad)
-            print(f'    Frontend atlas {idx}: {name} {box}')
+            print(f'    Frontend_{lang} atlas {idx}: {name} {box}')
         total += save_patched(ctx, img, tmp)
     os.replace(tmp, dst)
     return total
 
-def main(xdir, out, pdir=None):
+def main(xdir, out, pdir=None, langs=None):
+    langs = [l for l in (langs or LANGS) if os.path.exists(os.path.join(xdir, f'subtitles_proj_{l}.stz'))]
+    # English fonts give the reference look of every icon (their order is known)
+    ref_img, _ = load_texture(os.path.join(xdir, 'subtitles_proj_EN.stz'), 0)
+    x_refs = {n: crop(ref_img, b, 0) for n, b in zip(XBOX_ORDER, font_icons(ref_img))}
     if pdir:
-        ps3_font = ps3_texture(os.path.join(pdir, 'subtitles_proj_en.stz'), 0)
-        ps3_pop = ps3_texture(os.path.join(pdir, 'popups_en.stz'), 1)
-        p_icons = dict(zip(PS3_ORDER, font_icons(ps3_font)))
-        p_pop = sorted(blobs(ps3_pop, (850, 0, 1024, 40), 24))        # [Square, Circle]
-    for variant in ('ps3_buttons', 'keyboard_buttons'):
-        os.makedirs(os.path.join(out, variant), exist_ok=True)
-        # 1) subtitle font: all 8 button glyphs
-        img, ctx = load_texture(os.path.join(xdir, 'subtitles_proj_EN.stz'), 0)
-        x_icons = dict(zip(XBOX_ORDER, font_icons(img)))
-        for name, box in x_icons.items():
-            if variant == 'keyboard_buttons':
-                icon = kb_icon(name)
-            elif pdir:
-                icon = crop(ps3_font, p_icons[PS3_MAP[name]])
+        pref = ps3_texture(os.path.join(pdir, 'subtitles_proj_en.stz'), 0)
+        p_refs = {n: crop(pref, b, 0) for n, b in zip(PS3_ORDER, font_icons(pref))}
+    for lang in langs:
+        lo = lang.lower()
+        if pdir:
+            ps3_font = ps3_texture(os.path.join(pdir, f'subtitles_proj_{lo}.stz'), 0)
+            ps3_pop = ps3_texture(os.path.join(pdir, f'popups_{lo}.stz'), 1)
+            p_icons = identify(ps3_font, font_icons(ps3_font), p_refs)
+            p_pop = sorted(blobs(ps3_pop, (850, 0, 1024, 40), 24))    # [Square, Circle]
+        for variant in ('ps3_buttons', 'keyboard_buttons'):
+            os.makedirs(os.path.join(out, variant), exist_ok=True)
+            # 1) subtitle font: all 8 button glyphs
+            img, ctx = load_texture(os.path.join(xdir, f'subtitles_proj_{lang}.stz'), 0)
+            x_icons = identify(img, font_icons(img), x_refs)
+            for name, box in x_icons.items():
+                if variant == 'keyboard_buttons':
+                    icon = kb_icon(name)
+                elif pdir:
+                    icon = crop(ps3_font, p_icons[PS3_MAP[name]])
+                else:
+                    icon = own_ps3(name, img, box)
+                paste_icon(img, box, icon)
+            n1 = save_patched(ctx, img, os.path.join(out, variant, f'subtitles_proj_{lang}.stz'))
+            img.save(os.path.join(out, variant, f'subtitles_proj_{lang}_preview.png'))
+            # 2) pop-ups: A and B icons (third ring icon left as is)
+            img, ctx = load_texture(os.path.join(xdir, f'popups_{lang}.stz'), 1)
+            xa, xb = sorted(blobs(img, (850, 0, 1024, 40), 24))[:2]
+            if variant == 'ps3_buttons' and not pdir:
+                paste_icon(img, xa, own_ps3('A', img, xa)); paste_icon(img, xb, own_ps3('B', img, xb))
+            elif variant == 'ps3_buttons':
+                paste_icon(img, xa, crop(ps3_font, p_icons['Cross'])); paste_icon(img, xb, crop(ps3_pop, p_pop[1]))
             else:
-                icon = own_ps3(name, img, box)
-            paste_icon(img, box, icon)
-        n1 = save_patched(ctx, img, os.path.join(out, variant, 'subtitles_proj_EN.stz'))
-        img.save(os.path.join(out, variant, 'subtitles_proj_EN_preview.png'))
-        # 2) pop-ups: A and B icons (third ring icon left as is)
-        img, ctx = load_texture(os.path.join(xdir, 'popups_EN.stz'), 1)
-        xa, xb = sorted(blobs(img, (850, 0, 1024, 40), 24))[:2]
-        if variant == 'ps3_buttons' and not pdir:
-            paste_icon(img, xa, own_ps3('A', img, xa)); paste_icon(img, xb, own_ps3('B', img, xb))
-        elif variant == 'ps3_buttons':
-            paste_icon(img, xa, crop(ps3_font, p_icons['Cross'])); paste_icon(img, xb, crop(ps3_pop, p_pop[1]))
-        else:
-            paste_icon(img, xa, kb_icon('A')); paste_icon(img, xb, kb_icon('B'))
-        n2 = save_patched(ctx, img, os.path.join(out, variant, 'popups_EN.stz'))
-        img.crop((840, 0, 1024, 40)).save(os.path.join(out, variant, 'popups_EN_preview.png'))
-        n3 = frontend(xdir, pdir, out, variant)
-        print(f'{variant}: subtitles {n1} blocks, popups {n2} blocks, frontend {n3} blocks')
+                paste_icon(img, xa, kb_icon('A')); paste_icon(img, xb, kb_icon('B'))
+            n2 = save_patched(ctx, img, os.path.join(out, variant, f'popups_{lang}.stz'))
+            img.crop((840, 0, 1024, 40)).save(os.path.join(out, variant, f'popups_{lang}_preview.png'))
+            n3 = frontend(xdir, pdir, out, variant, lang)
+            print(f'{variant} {lang}: subtitles {n1} blocks, popups {n2} blocks, frontend {n3} blocks')
 
 if __name__ == '__main__':
     if len(sys.argv) < 3:

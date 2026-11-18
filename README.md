@@ -23,14 +23,15 @@ game runs as a normal Windows program.
 | Hardware Crack minigame | ✅ played on Windows (RTX 4070) |
 | Other minigames, full playthrough, saves | 🚧 testing |
 | Keyboard controls | ✅ (`--mnk_mode`) |
-| Button prompts: Xbox / PlayStation / keyboard | ✅ English UI; other languages to do |
+| Button prompts: Xbox / PlayStation / keyboard | ✅ all 5 languages |
+| Game languages: English, French, German, Italian, Spanish | ✅ (launcher) |
 | Skip EA / Visceral logos (optional) | ✅ |
 | Xbox LIVE features (leaderboards, online) | ❌ not planned |
 | Setup tool and release zip | ✅ (first release being tested) |
 
 ## Features
 - **Native Windows executable.** No emulator required.
-- **Launcher** (`Launcher.bat`): choose Xbox 360, PlayStation 3 or keyboard button prompts, optionally skip the publisher logo movie, then play.
+- **Launcher** (`Launcher.bat`): choose the game language (English, Français, Deutsch, Italiano, Español; the launcher itself is translated too), Xbox 360, PlayStation 3 or keyboard button prompts, optionally skip the publisher logo movie, then play.
 - **Keyboard controls**, or any XInput controller (see [Controls](#controls)).
 - **PlayStation prompts** for menus, pop-ups, subtitles and the hacking minigames, drawn by DSI Recomp (the minigame ones already ship in the Xbox files). If you own the PS3 version, Setup can use its symbols instead.
 - **Setup.exe**: point it at your Xbox 360 package; it extracts and checks the game and builds the prompt sets.

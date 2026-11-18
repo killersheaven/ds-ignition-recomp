@@ -17,10 +17,9 @@ sys.path.insert(0, HERE)
 
 XEX_SHA1 = '451fea5e930d767fa3b770b1f80391881032c853'
 # files the launcher swaps: path inside extracted\Resource  ->  path inside mods\<set>
+LANGS = ['EN', 'FR', 'GE', 'IT', 'SP']     # the game's text languages; each has its own prompt files
 MANAGED = {
-    'SumoTool/subtitles_proj_EN.stz': 'subtitles_proj_EN.stz',
-    'SumoTool/popups_EN.stz': 'popups_EN.stz',
-    'SumoTool/Frontend_EN.stz': 'Frontend_EN.stz',
+    **{f'SumoTool/{f}_{l}.stz': f'{f}_{l}.stz' for l in LANGS for f in ('subtitles_proj', 'popups', 'Frontend')},
     'HardwareCrack/HardwareCrackSet.zif': 'HardwareCrack/HardwareCrackSet.zif',
     'HardwareCrack/HardwareCrackSet.zig': 'HardwareCrack/HardwareCrackSet.zig',
     'SoftwareHack/SoftwareHackSet.zif': 'SoftwareHack/SoftwareHackSet.zif',
