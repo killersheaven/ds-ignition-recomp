@@ -13,7 +13,8 @@ $dst    = Join-Path $root "extracted\Resource"
 # Game text languages: file suffix -> console language ID passed as --user_language
 $langs = [ordered]@{ EN = 1; FR = 4; GE = 3; IT = 6; SP = 5 }
 $langNames = [ordered]@{ EN = "English"; FR = "Français"; GE = "Deutsch"; IT = "Italiano"; SP = "Español" }
-$T = @{
+# all launcher texts by language. (Not "$T": PowerShell names ignore case, so $t below would overwrite it.)
+$Strings = @{
   EN = @{ lang = "Language"; group = "Button prompts"; kb = "Keyboard"; missing = "(missing)"; skip = "Skip EA and Visceral logos"
           filesmissing = "(files missing)"; full = "I own the full game (unlock trial)"; play = "Play"; installed = "Installed:"
           custom = "custom"; about = "About / credits"; aboutTitle = "About DSI Recomp"; by = "recompiled by"
@@ -95,9 +96,9 @@ if (-not $settings.language) {
 $movie  = Join-Path $root "extracted\Resource\Movies\EaHd.bik"
 $movieOrig = Join-Path $root "mods\original\EaHd.bik"
 $movieSkip = Join-Path $root "mods\skip_logos\EaHd.bik"
-# internal set names (labels come from $T); Get-CurrentSet returns one of these keys
+# internal set names (labels come from $Strings); Get-CurrentSet returns one of these keys
 $sets   = [ordered]@{ xbox = "mods\original"; ps3 = "mods\ps3_buttons"; keyboard = "mods\keyboard_buttons" }
-function SetLabel($key, $L) { switch ($key) { "xbox" { "Xbox 360" } "ps3" { "PlayStation 3" } default { $T[$L].kb } } }
+function SetLabel($key, $L) { switch ($key) { "xbox" { "Xbox 360" } "ps3" { "PlayStation 3" } default { $Strings[$L].kb } } }
 
 function Get-CurrentSet {
     # A set counts as installed only if ALL of its files match; anything else = $null (gets re-copied on Play)
@@ -218,7 +219,7 @@ $about.Add_LinkClicked({
     $c = Join-Path $root "CREDITS.md"
     $text = if (Test-Path $c) { Get-Content $c -Raw } else { "DSI Recomp - recompiled by Killers' Heaven" }
     $f2 = New-Object System.Windows.Forms.Form
-    $f2.Text = $T[(CurLang)].aboutTitle; $f2.StartPosition = "CenterParent"; $f2.Size = New-Object System.Drawing.Size(640, 560)
+    $f2.Text = $Strings[(CurLang)].aboutTitle; $f2.StartPosition = "CenterParent"; $f2.Size = New-Object System.Drawing.Size(640, 560)
     $tb = New-Object System.Windows.Forms.TextBox
     $tb.Multiline = $true; $tb.ReadOnly = $true; $tb.ScrollBars = "Vertical"; $tb.Dock = "Fill"
     $tb.Font = New-Object System.Drawing.Font("Consolas", 9); $tb.Text = $text -replace "`r?`n", "`r`n"
@@ -257,7 +258,7 @@ function Write-GameConfig($prompts) {
 }
 
 function Show-Options {
-    $t = $T[(CurLang)]
+    $t = $Strings[(CurLang)]
     $d = New-Object System.Windows.Forms.Form
     $d.Text = $t.optTitle; $d.StartPosition = "CenterParent"; $d.FormBorderStyle = "FixedDialog"
     $d.MaximizeBox = $false; $d.MinimizeBox = $false; $d.ShowInTaskbar = $false
@@ -342,7 +343,7 @@ function Save-Settings {
 
 function CurLang { @($langs.Keys)[[math]::Max($langBox.SelectedIndex, 0)] }
 function Apply-Texts {
-    $L = CurLang; $t = $T[$L]
+    $L = CurLang; $t = $Strings[$L]
     $title.Text = "DSI RECOMP  -  $($t.by) Killers' Heaven"
     $langLabel.Text = $t.lang
     $group.Text = $t.group
@@ -366,7 +367,7 @@ $play.Add_Click({
             $src = if ($skip.Checked) { $movieSkip } else { $movieOrig }
             Copy-Item $src $movie -Force -ErrorAction Stop
         }
-        $t = $T[(CurLang)]
+        $t = $Strings[(CurLang)]
         if (-not (Test-Path $exe)) { throw $t.errExe }
         if (-not (Test-Path "$root\extracted\default.xex")) { throw $t.errSetup }
         New-Item -ItemType Directory -Force "$root\docs" | Out-Null
@@ -380,7 +381,7 @@ $play.Add_Click({
         Start-Process -FilePath $exe -ArgumentList $gameArgs -WorkingDirectory $exeDir
         $form.Close()
     } catch {
-        $t = $T[(CurLang)]
+        $t = $Strings[(CurLang)]
         [System.Windows.Forms.MessageBox]::Show("$($t.errStart): $($_.Exception.Message)`n`n$($t.errRunning)", "Dead Space Ignition") | Out-Null
     }
 })
