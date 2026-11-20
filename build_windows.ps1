@@ -76,6 +76,11 @@ Get-ChildItem (Join-Path $install "bin"), (Join-Path $install "lib") -Filter *.d
 # Killers' Heaven boot splash logo (loaded from branding\ next to the exe; no file = no splash)
 New-Item -ItemType Directory -Force (Join-Path $exeDir "branding") | Out-Null
 Copy-Item (Join-Path $root "branding\killers_heaven_on_dark.png") (Join-Path $exeDir "branding") -Force -ErrorAction SilentlyContinue
+# Fonts for the DSI Recomp screens (splash text, achievements); without them the SDK pixel font is used
+New-Item -ItemType Directory -Force (Join-Path $exeDir "fonts") | Out-Null
+Copy-Item (Join-Path $root "tools\fonts\*.ttf") (Join-Path $exeDir "fonts") -Force
+# "DSI Recomp.exe": starts the launcher without a console window, with the DSI icon
+& (Join-Path $root "tools\launcher\build_launcher_exe.ps1") -OutFile (Join-Path $root "DSI Recomp.exe")
 @"
 @echo off
 cd /d "%~dp0"

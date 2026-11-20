@@ -14,10 +14,13 @@ WHAT YOU NEED
 FIRST TIME
   1. Unzip this folder somewhere you can write to (not Program Files). It needs about 2 GB.
   2. Run Setup.exe, pick your Xbox 360 package, press Install. It takes a few minutes.
+     Updating from an older DSI Recomp? Pick the old DSI Recomp folder with "Folder..." instead:
+     no need to find the package again. Your saves and achievements are kept: they are stored in
+     Documents\dsignition, not in this folder.
      (Windows SmartScreen may warn about an unknown publisher: More info > Run anyway.)
      The PlayStation button symbols are drawn by DSI Recomp. If you also own the PS3 version you can
      tick the option to use its own symbols instead (folder: USRDIR\resource\sumotool).
-  3. Run Launcher.bat.
+  3. Run DSI Recomp.exe (Setup can put a shortcut on the desktop). Launcher.bat works too.
 
 LAUNCHER
   - Language: English, Français, Deutsch, Italiano or Español (game text and the launcher).
@@ -25,7 +28,13 @@ LAUNCHER
   - Skip EA and Visceral logos.
   - I own the full game (unlock trial): the XBLA package starts as the trial unless your
     console licence is present. Tick this only if you bought the full game.
+  - Options...: rendering resolution (1x-4x), upscaling filter (bilinear, AMD FSR, AMD CAS),
+    fullscreen or window, VSync, vibration and stick dead zones. Saved in bin\dsignition.toml.
   play.bat starts the game directly with the last launcher choices.
+
+ACHIEVEMENTS
+  Open them from the game's Achievements menu entry. Unlocks pop up in game and are saved
+  automatically.
 
 KEYBOARD
   Enter = Start    Space = A    Backspace = B    L = X    P = Y

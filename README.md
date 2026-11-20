@@ -31,10 +31,12 @@ game runs as a normal Windows program.
 
 ## Features
 - **Native Windows executable.** No emulator required.
-- **Launcher** (`Launcher.bat`): choose the game language (English, Français, Deutsch, Italiano, Español; the launcher itself is translated too), Xbox 360, PlayStation 3 or keyboard button prompts, optionally skip the publisher logo movie, then play.
+- **Launcher** (`DSI Recomp.exe`, or `Launcher.bat`): choose the game language (English, Français, Deutsch, Italiano, Español; the launcher itself is translated too), Xbox 360, PlayStation 3 or keyboard button prompts, optionally skip the publisher logo movie, then play.
+- **Options:** rendering resolution up to 4x (sharper 3D), AMD FSR / CAS upscaling, fullscreen or window, VSync, controller vibration and stick dead zones.
+- **Achievements:** the game's own Achievements menu opens a DSI Recomp achievements screen with the game's names and icons in your language. Unlocks pop up in game and are saved automatically.
 - **Keyboard controls**, or any XInput controller (see [Controls](#controls)).
 - **PlayStation prompts** for menus, pop-ups, subtitles and the hacking minigames, drawn by DSI Recomp (the minigame ones already ship in the Xbox files). If you own the PS3 version, Setup can use its symbols instead.
-- **Setup.exe**: point it at your Xbox 360 package; it extracts and checks the game and builds the prompt sets.
+- **Setup.exe**: point it at your Xbox 360 package (or an older DSI Recomp folder); it extracts and checks the game, builds the prompt sets and can create desktop / Start-menu shortcuts.
 - **Killers' Heaven boot splash**, shown before the game's own intro.
 
 ## Controls
@@ -60,7 +62,7 @@ With the **Keyboard** prompt set picked in the launcher, the on-screen prompts s
 
 ## Getting started
 **Release zip:** unzip, run `Setup.exe` and pick your Xbox 360 package (title ID `58410A7B`), then run
-`Launcher.bat`. See the README.txt inside the zip.
+`DSI Recomp.exe` (or the desktop shortcut). See the README.txt inside the zip.
 
 **From source:** see **[BUILD.md](BUILD.md)**. In short:
 1. `python tools\setup.py --package <your package>` (extracts, checks and prepares the game files).

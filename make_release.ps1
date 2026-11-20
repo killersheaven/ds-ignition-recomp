@@ -23,6 +23,7 @@ Log "Building Setup.exe"
 Run python -m pip install --quiet --disable-pip-version-check numpy pillow pyinstaller
 $work = Join-Path $out "pyinstaller"
 Run python -m PyInstaller --noconfirm --clean --onefile --windowed --name Setup `
+    --icon (Join-Path $root "branding\dsi.ico") `
     --distpath (Join-Path $out "dist") --workpath $work --specpath $work `
     --paths (Join-Path $root "tools") `
     --add-data "$(Join-Path $root 'tools\fonts');fonts" `
@@ -33,12 +34,15 @@ Run python -m PyInstaller --noconfirm --clean --onefile --windowed --name Setup 
 # 2. stage the release folder
 Log "Staging $name"
 if (Test-Path $stage) { Remove-Item -Recurse -Force $stage }
-New-Item -ItemType Directory -Force $stage, "$stage\bin\branding", "$stage\tools\launcher", "$stage\branding", "$stage\docs" | Out-Null
+New-Item -ItemType Directory -Force $stage, "$stage\bin\branding", "$stage\bin\fonts", "$stage\tools\launcher", "$stage\branding", "$stage\docs" | Out-Null
 Copy-Item (Join-Path $out "dist\Setup.exe") $stage
 Copy-Item "$exeDir\dsignition.exe" "$stage\bin"
 Get-ChildItem $exeDir -Filter *.dll | Copy-Item -Destination "$stage\bin"
 Copy-Item (Join-Path $root "branding\killers_heaven_on_dark.png") "$stage\bin\branding"
+Copy-Item (Join-Path $root "tools\fonts\*.ttf") "$stage\bin\fonts"
 Copy-Item (Join-Path $root "branding\launcher_logo.png") "$stage\branding"
+Copy-Item (Join-Path $root "branding\dsi.ico") "$stage\branding"
+& (Join-Path $root "tools\launcher\build_launcher_exe.ps1") -OutFile (Join-Path $stage "DSI Recomp.exe")
 Copy-Item (Join-Path $root "tools\launcher\launcher.ps1") "$stage\tools\launcher"
 Copy-Item (Join-Path $root "docs\sha1_baseline.txt") "$stage\docs"
 foreach ($f in "Launcher.bat", "play.bat", "buttons.bat", "CREDITS.md", "LICENSE") { Copy-Item (Join-Path $root $f) $stage }

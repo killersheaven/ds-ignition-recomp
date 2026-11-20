@@ -13,6 +13,8 @@
 #include <rex/ui/immediate_drawer.h>
 #include <imgui.h>
 
+#include "dsi_fonts.h"
+
 #include <algorithm>
 #include <chrono>
 #include <fstream>
@@ -81,13 +83,16 @@ class SplashDialog : public rex::ui::ImGuiDialog {
         cy += h * 0.5f;
       }
       const float scale = std::max(1.0f, size.y / 720.0f);
-      CenterText(dl, "DSI Recomp  -  native PC recompilation", cy + 30.0f * scale, 2.0f * scale,
-                 IM_COL32(180, 190, 200, 0) | a8, size.x);
-      // ASCII only: the default ImGui font has no (TM)/(C) glyphs
-      CenterText(dl, "Dead Space(TM) Ignition (C) 2010 Electronic Arts Inc.",
-                 size.y - 64.0f * scale, 1.4f * scale, IM_COL32(120, 128, 138, 0) | a8, size.x);
+      // DejaVu Sans when fonts\ is present (has the \u2122 and \u00A9 signs), else the SDK pixel font
+      const bool nice = dsi::g_font_regular != nullptr;
+      CenterText(dl, nice ? "DSI Recomp  \u2013  native PC recompilation" : "DSI Recomp  -  native PC recompilation",
+                 cy + 30.0f * scale,
+                 (nice ? 22.0f : 20.0f) * scale, IM_COL32(180, 190, 200, 0) | a8, size.x);
+      CenterText(dl, nice ? "Dead Space\u2122 Ignition \u00A9 2010 Electronic Arts Inc."
+                          : "Dead Space(TM) Ignition (C) 2010 Electronic Arts Inc.",
+                 size.y - 64.0f * scale, 15.0f * scale, IM_COL32(120, 128, 138, 0) | a8, size.x);
       CenterText(dl, "Unofficial fan project. Not affiliated with or endorsed by Electronic Arts.",
-                 size.y - 40.0f * scale, 1.4f * scale, IM_COL32(120, 128, 138, 0) | a8, size.x);
+                 size.y - 40.0f * scale, 15.0f * scale, IM_COL32(120, 128, 138, 0) | a8, size.x);
     }
     ImGui::End();
     ImGui::PopStyleColor();
@@ -106,9 +111,9 @@ class SplashDialog : public rex::ui::ImGuiDialog {
     return false;
   }
 
-  static void CenterText(ImDrawList* dl, const char* text, float y, float scale, ImU32 col, float width) {
-    ImFont* font = ImGui::GetFont();
-    const float px = ImGui::GetFontSize() * scale;
+  // px = text height in pixels
+  static void CenterText(ImDrawList* dl, const char* text, float y, float px, ImU32 col, float width) {
+    ImFont* font = dsi::Regular();
     ImVec2 ts = font->CalcTextSizeA(px, FLT_MAX, 0.0f, text);
     dl->AddText(font, px, ImVec2((width - ts.x) * 0.5f, y), col, text);
   }

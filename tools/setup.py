@@ -55,6 +55,28 @@ def load_baseline(root):
     raise FileNotFoundError('docs\\sha1_baseline.txt is missing from the DSI Recomp folder')
 
 
+def create_shortcuts(root, log=print):
+    """Desktop and Start-menu shortcuts to DSI Recomp.exe (or Launcher.bat). Windows only."""
+    if os.name != 'nt':
+        return
+    import subprocess
+    target = os.path.join(root, 'DSI Recomp.exe')
+    if not os.path.exists(target):
+        target = os.path.join(root, 'Launcher.bat')
+    icon = os.path.join(root, 'branding', 'dsi.ico')
+    ps = (
+        "$s = New-Object -ComObject WScript.Shell; "
+        "foreach ($d in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) { "
+        "$l = $s.CreateShortcut((Join-Path $d 'DSI Recomp.lnk')); $l.TargetPath = $env:DSI_TARGET; "
+        "$l.WorkingDirectory = $env:DSI_ROOT; if (Test-Path $env:DSI_ICON) { $l.IconLocation = $env:DSI_ICON }; "
+        "$l.Description = 'Dead Space Ignition - DSI Recomp'; $l.Save() }")
+    env = dict(os.environ, DSI_TARGET=target, DSI_ROOT=root, DSI_ICON=icon)   # paths via env: no quoting issues
+    r = subprocess.run(['powershell', '-NoProfile', '-ExecutionPolicy', 'Bypass', '-Command', ps], env=env,
+                       capture_output=True, text=True, creationflags=0x08000000)   # CREATE_NO_WINDOW
+    log('Shortcuts created on the desktop and in the Start menu.' if r.returncode == 0
+        else 'Could not create shortcuts: ' + (r.stderr or '').strip()[:200])
+
+
 def run(root, package, ps3=None, log=print, progress=lambda f: None):
     root = os.path.abspath(root)
     ext = os.path.join(root, 'extracted')
@@ -66,13 +88,26 @@ def run(root, package, ps3=None, log=print, progress=lambda f: None):
     # 1. game files ---------------------------------------------------------------------------
     package = os.path.abspath(package)
     if os.path.isdir(package):
+        old_orig = None
+        if not os.path.exists(os.path.join(package, 'default.xex')) and \
+                os.path.exists(os.path.join(package, 'extracted', 'default.xex')):
+            # an older DSI Recomp folder: its game files, with the launcher-swapped ones taken from its backups
+            old_orig = os.path.join(package, 'mods', 'original')
+            package = os.path.join(package, 'extracted')
         if not os.path.exists(os.path.join(package, 'default.xex')):
-            raise RuntimeError('That folder has no default.xex. Pick the Xbox 360 package file, or the folder it was extracted to.')
+            raise RuntimeError('That folder has no default.xex. Pick the Xbox 360 package file, the folder it was '
+                               'extracted to, or an older DSI Recomp folder.')
         if os.path.normcase(package) != os.path.normcase(ext):
             log(f'Copying game files from {package} ...')
+            backups = {'Resource/' + rel: os.path.join(old_orig, *m.split('/'))
+                       for rel, m in MANAGED.items()} if old_orig else {}
             n = 0
             for name in baseline:
                 src = os.path.join(package, *name.split('/'))
+                b = backups.get(name)
+                if b and os.path.exists(b) and os.path.exists(src) and sha1(src) != baseline[name] \
+                        and sha1(b) == baseline[name]:
+                    src = b
                 dst = os.path.join(ext, *name.split('/'))
                 if not os.path.exists(src):
                     raise RuntimeError(f'Missing game file: {name}')
@@ -164,7 +199,7 @@ def run(root, package, ps3=None, log=print, progress=lambda f: None):
     progress(1.0)
     log('Button prompt sets and logo skip ready.')
     log('')
-    log('Setup complete. Start the game with Launcher.bat.')
+    log('Setup complete. Start the game with DSI Recomp.exe (or Launcher.bat).')
 
 
 # ------------------------------------------------------------------------------------------------
@@ -174,6 +209,10 @@ def gui(root):
 
     w = tk.Tk()
     w.title('DSI Recomp - Setup')
+    try:
+        w.iconbitmap(os.path.join(root, 'branding', 'dsi.ico'))
+    except Exception:
+        pass
     w.configure(bg='#1b1d22')
     w.resizable(False, False)
     style = ttk.Style(w)
@@ -198,7 +237,7 @@ def gui(root):
     ttk.Label(w, text='DSI Recomp setup', style='Head.TLabel').grid(row=1, column=0, columnspan=3, pady=(2, 10))
 
     pkg = tk.StringVar()
-    ttk.Label(w, text='Your Xbox 360 game package (title ID 58410A7B), or a folder of extracted files:').grid(
+    ttk.Label(w, text='Your Xbox 360 game package (title ID 58410A7B), an extracted copy, or an older DSI Recomp folder:').grid(
         row=2, column=0, columnspan=3, sticky='w', padx=16)
     ttk.Entry(w, textvariable=pkg, width=62).grid(row=3, column=0, columnspan=2, sticky='we', padx=(16, 6), pady=4)
 
@@ -207,7 +246,7 @@ def gui(root):
         if p:
             pkg.set(os.path.normpath(p))
     def pick_pkg_dir():
-        p = filedialog.askdirectory(title='Folder with the extracted game (contains default.xex)', parent=w)
+        p = filedialog.askdirectory(title='Extracted game (contains default.xex) or an older DSI Recomp folder', parent=w)
         if p:
             pkg.set(os.path.normpath(p))
     bf = tk.Frame(w, bg=bg); bf.grid(row=3, column=2, padx=(0, 16))
@@ -240,6 +279,9 @@ def gui(root):
     txt.grid(row=9, column=0, columnspan=3, padx=16, pady=4, sticky='we')
     go = ttk.Button(w, text='Install')
     go.grid(row=10, column=2, sticky='e', padx=16, pady=(4, 14))
+    shortcuts = tk.BooleanVar(value=True)
+    ttk.Checkbutton(w, text='Create desktop and Start menu shortcuts', variable=shortcuts).grid(
+        row=10, column=0, columnspan=2, sticky='w', padx=16, pady=(4, 14))
 
     def log(msg):
         def a():
@@ -248,10 +290,13 @@ def gui(root):
     def progress(f):
         w.after(0, lambda: bar.configure(value=f))
 
-    def work(p, q):
+    def work(p, q, sc):
         try:
             run(root, p, q, log, progress)
-            w.after(0, lambda: messagebox.showinfo('DSI Recomp', 'Setup complete.\n\nStart the game with Launcher.bat.', parent=w))
+            if sc:
+                create_shortcuts(root, log)
+            w.after(0, lambda: messagebox.showinfo('DSI Recomp', 'Setup complete.\n\nStart the game with DSI Recomp '
+                                                   '(shortcut, or DSI Recomp.exe in this folder).', parent=w))
         except Exception as e:
             log('ERROR: ' + str(e))
             with open(os.path.join(root, 'setup_error.log'), 'w', encoding='utf-8') as f:
@@ -266,7 +311,7 @@ def gui(root):
             messagebox.showwarning('DSI Recomp', 'Pick your Xbox 360 game package first.', parent=w); return
         q = ps3.get().strip().strip('"') if use_ps3.get() else None
         go.configure(state='disabled'); bar.configure(value=0)
-        threading.Thread(target=work, args=(p, q), daemon=True).start()
+        threading.Thread(target=work, args=(p, q, shortcuts.get()), daemon=True).start()
     go.configure(command=start)
     w.mainloop()
 
@@ -276,6 +321,7 @@ def main():
     ap.add_argument('--package', help='Xbox 360 package file, or a folder with the extracted game')
     ap.add_argument('--ps3', help='optional: PS3 version USRDIR\\resource\\sumotool folder')
     ap.add_argument('--root', default=default_root(), help='DSI Recomp folder (default: this one)')
+    ap.add_argument('--shortcuts', action='store_true', help='also create desktop and Start menu shortcuts')
     a = ap.parse_args()
     if a.package:
         last = [-1]
@@ -284,6 +330,8 @@ def main():
                 last[0] = int(f * 20); print(f'  {int(f * 100)}%', flush=True)
         try:
             run(a.root, a.package, a.ps3, lambda m: print(m, flush=True), prog)
+            if a.shortcuts:
+                create_shortcuts(a.root)
         except Exception as e:
             sys.exit(f'ERROR: {e}')
     else:

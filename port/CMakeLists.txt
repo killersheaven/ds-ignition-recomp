@@ -13,7 +13,13 @@ include(generated/rexglue.cmake)
 # Sources
 set(DSIGNITION_SOURCES
     src/main.cpp
+    src/dsi_hooks.cpp
 )
+if(WIN32)
+    # exe icon; SDL also takes the game window / taskbar icon from it
+    enable_language(RC)
+    list(APPEND DSIGNITION_SOURCES res/dsignition.rc)
+endif()
 
 if(WIN32)
     add_executable(dsignition WIN32 ${DSIGNITION_SOURCES})
