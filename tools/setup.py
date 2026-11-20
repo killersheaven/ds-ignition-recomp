@@ -55,6 +55,38 @@ def load_baseline(root):
     raise FileNotFoundError('docs\\sha1_baseline.txt is missing from the DSI Recomp folder')
 
 
+def save_game_icon(root, package, log=print):
+    """The game's own Xbox 360 dashboard tile (a 64x64 PNG in the package header) as branding\\game_icon.ico,
+    used for the shortcuts and the launcher window. Taken from the player's own copy, never distributed.
+    From an older DSI Recomp folder, its saved copy is reused."""
+    dst = os.path.join(root, 'branding')
+    os.makedirs(dst, exist_ok=True)
+    try:
+        if os.path.isdir(package):
+            for f in ('game_icon.png', 'game_icon.ico'):
+                old = os.path.join(package, 'branding', f)
+                if os.path.exists(old) and os.path.normcase(os.path.abspath(old)) != \
+                        os.path.normcase(os.path.join(dst, f)):
+                    shutil.copyfile(old, os.path.join(dst, f))
+            return
+        import io, struct
+        from PIL import Image
+        with open(package, 'rb') as f:
+            hdr = f.read(0x971A)
+        size = struct.unpack('>I', hdr[0x1712:0x1716])[0]            # STFS thumbnail image
+        png = hdr[0x171A:0x171A + size]
+        if not (0 < size <= 0x4000 and png.startswith(b'\x89PNG')):
+            return
+        img = Image.open(io.BytesIO(png)).convert('RGBA')
+        img.save(os.path.join(dst, 'game_icon.png'))
+        big = img.resize((256, 256), Image.LANCZOS)
+        big.save(os.path.join(dst, 'game_icon.ico'),
+                 sizes=[(16, 16), (24, 24), (32, 32), (48, 48), (64, 64), (128, 128), (256, 256)])
+        log('Game icon taken from your package for the shortcuts.')
+    except Exception as e:                                              # an icon is never worth failing setup for
+        log(f'(No game icon: {e})')
+
+
 def create_shortcuts(root, log=print):
     """Desktop and Start-menu shortcuts to DSI Recomp.exe (or Launcher.bat). Windows only."""
     if os.name != 'nt':
@@ -63,7 +95,9 @@ def create_shortcuts(root, log=print):
     target = os.path.join(root, 'DSI Recomp.exe')
     if not os.path.exists(target):
         target = os.path.join(root, 'Launcher.bat')
-    icon = os.path.join(root, 'branding', 'dsi.ico')
+    icon = os.path.join(root, 'branding', 'game_icon.ico')
+    if not os.path.exists(icon):
+        icon = os.path.join(root, 'branding', 'dsi.ico')
     ps = (
         "$s = New-Object -ComObject WScript.Shell; "
         "foreach ($d in [Environment]::GetFolderPath('Desktop'), [Environment]::GetFolderPath('Programs')) { "
@@ -87,6 +121,7 @@ def run(root, package, ps3=None, log=print, progress=lambda f: None):
 
     # 1. game files ---------------------------------------------------------------------------
     package = os.path.abspath(package)
+    original_package = package
     if os.path.isdir(package):
         old_orig = None
         if not os.path.exists(os.path.join(package, 'default.xex')) and \
@@ -159,6 +194,7 @@ def run(root, package, ps3=None, log=print, progress=lambda f: None):
     if bad:
         raise RuntimeError(f'{len(bad)} game file(s) are missing or differ from the supported version:\n  ' + '\n  '.join(bad[:15]))
     log(f'All {len(baseline)} game files OK.')
+    save_game_icon(root, original_package, log)
 
     # 3. back up originals -----------------------------------------------------------------------
     for rel, m in MANAGED.items():

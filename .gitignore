@@ -52,3 +52,5 @@ launcher_settings.json
 # release build output
 release/
 setup_error.log
+# game tile taken from the player's own package by Setup (EA artwork)
+branding/game_icon.*
