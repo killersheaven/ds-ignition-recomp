@@ -7,6 +7,8 @@
 # First run: about 20-40 min. Later runs only rebuild what changed.
 # Output: port\out\build\win-amd64-release\dsignition.exe (+ play.bat). Full log: docs\build_windows.log
 
+#     add -RebuildSdk to force a rebuild of the ReXGlue SDK (normally built once)
+param([switch]$RebuildSdk)
 $ErrorActionPreference = "Stop"
 $root   = $PSScriptRoot
 $sdk    = Join-Path $root "rexglue-sdk"
@@ -51,14 +53,26 @@ if (-not (Test-Path (Join-Path $sdk ".git"))) {
     Run git clone --recursive https://github.com/rexglue/rexglue-sdk.git $sdk
 }
 Push-Location $sdk
-Run git checkout $sdkRev
-Run git submodule update --init --recursive
-# Clear a configure cache left by a failed run (e.g. the earlier 32-bit attempt)
-if ((Test-Path "out\build\win-amd64\CMakeCache.txt") -and -not (Test-Path "out\install\win-amd64")) { Remove-Item -Recurse -Force "out\build\win-amd64" }
-Run cmake --preset win-amd64
-Run cmake --build out/build/win-amd64 --config Release --target install
-Pop-Location
 $install = Join-Path $sdk "out\install\win-amd64"
+$stamp = Join-Path $install ".dsi_sdk_rev"
+$head = (& git rev-parse --short=7 HEAD 2>$null)
+# The SDK only needs building once per pinned commit. Skipping it when it is already installed also
+# avoids re-running its glob check, which made the Ninja bundled with Visual Studio crash
+# (0xC0000005 / 0xC00000FD) on a rebuild.
+$sdkReady = (Test-Path (Join-Path $install "lib")) -and ($head -eq $sdkRev) -and
+            ((-not (Test-Path $stamp)) -or ((Get-Content $stamp -Raw).Trim() -eq $sdkRev))
+if ($sdkReady -and -not $RebuildSdk) {
+    Log "ReXGlue SDK $sdkRev already installed - skipping its build (use -RebuildSdk to force)"
+} else {
+    Run git checkout $sdkRev
+    Run git submodule update --init --recursive
+    # Clear a configure cache left by a failed run (e.g. the earlier 32-bit attempt)
+    if ((Test-Path "out\build\win-amd64\CMakeCache.txt") -and -not (Test-Path "out\install\win-amd64")) { Remove-Item -Recurse -Force "out\build\win-amd64" }
+    Run cmake --preset win-amd64
+    Run cmake --build out/build/win-amd64 --config Release --target install
+}
+Set-Content -Path $stamp -Value $sdkRev -Encoding ASCII
+Pop-Location
 
 # 4. The game project (codegen runs as part of the build)
 Push-Location (Join-Path $root "port")
