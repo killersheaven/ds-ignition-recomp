@@ -67,8 +67,18 @@ Copy-Item (Join-Path $root "release_readme.txt") (Join-Path $stage "README.txt")
 # 3. zip
 $zip = Join-Path $out "$name.zip"
 if (Test-Path $zip) { Remove-Item $zip }
-# .NET's zip writer uses "/" paths (Compress-Archive in Windows PowerShell 5 writes "\\", which other unzip tools mishandle)
-Add-Type -AssemblyName System.IO.Compression.FileSystem
-[System.IO.Compression.ZipFile]::CreateFromDirectory($stage, $zip, [System.IO.Compression.CompressionLevel]::Optimal, $true)
+# Entries written one by one with "/" paths: Windows PowerShell 5 runs on .NET Framework, whose
+# ZipFile.CreateFromDirectory (and Compress-Archive) store "\\" paths that non-Windows unzip tools mishandle.
+Add-Type -AssemblyName System.IO.Compression, System.IO.Compression.FileSystem
+$fs = [System.IO.File]::Open($zip, [System.IO.FileMode]::Create)
+$za = New-Object System.IO.Compression.ZipArchive($fs, [System.IO.Compression.ZipArchiveMode]::Create)
+try {
+    $base = (Split-Path $stage -Parent).TrimEnd('\') + '\'
+    Get-ChildItem $stage -Recurse -File | ForEach-Object {
+        $entry = $_.FullName.Substring($base.Length) -replace '\\', '/'
+        [void][System.IO.Compression.ZipFileExtensions]::CreateEntryFromFile($za, $_.FullName, $entry,
+            [System.IO.Compression.CompressionLevel]::Optimal)
+    }
+} finally { $za.Dispose(); $fs.Dispose() }
 $mb = [math]::Round((Get-Item $zip).Length / 1MB, 1)
 Log "DONE: $zip ($mb MB)"
